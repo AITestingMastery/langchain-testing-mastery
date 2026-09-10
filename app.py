@@ -253,6 +253,25 @@ with st.sidebar:
 | Observability | hand-built panel | LangSmith |
 | Old MCP servers | — | plug in as tools |
 """)
+    st.divider()
+    with st.expander("🔗 LCEL chain (vs the agent)"):
+        st.caption("The rest of the app is an **agent** (decides its own steps). "
+                   "This is a **chain** — a fixed `prompt | model | parser` pipe. "
+                   "Different tool for a different job.")
+        st.code("chain = prompt | model | parser", language="python")
+        chain_text = st.text_area("Text to summarize", height=90,
+                                  placeholder="Paste a bug report or any text…")
+        if st.button("Run LCEL chain (summarize)", use_container_width=True):
+            if chain_text.strip():
+                from chains import build_summarize_chain
+                with st.spinner("Running the chain…"):
+                    chain = build_summarize_chain(st.session_state.provider)
+                    st.session_state.chain_out = chain.invoke({"text": chain_text})
+            else:
+                st.session_state.chain_out = "(enter some text first)"
+        if st.session_state.get("chain_out"):
+            st.success(st.session_state.chain_out)
+
     if st.button("🧹 Clear conversation", use_container_width=True):
         st.session_state.history = []
         st.session_state.usage = {"in": 0, "out": 0, "calls": 0}
